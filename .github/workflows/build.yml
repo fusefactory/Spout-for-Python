@@ -59,8 +59,8 @@ jobs:
         run: |
           git submodule update --init --recursive
 
-      - name: Setup MSBuild.exe
-        uses: warrenbuckley/Setup-MSBuild@v1
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.1
 
       # run build command
       - name: Build spout
