@@ -6,7 +6,7 @@ on:
       tag:
         description: 'Version Tag'
         required: false
-        default: 'v0.0.2'
+        default: 'v0.0.1'
 
 jobs:
   build:
@@ -41,7 +41,7 @@ jobs:
           # Set the default path as the path to cache
           path: ${{env.GITHUB_WORKSPACE}}/boost/boost
           # Use the version as the key to only cache the correct version
-          key: boost-${{BOOST_VERSION}}
+          key: boost-${{env.BOOST_VERSION}}
 
       - name: Install boost
         if: steps.cache-boost.outputs.cache-hit != 'true'
@@ -51,7 +51,7 @@ jobs:
           # REQUIRED: Specify the required boost version
           # A list of supported versions can be found here: 
           # https://github.com/actions/boost-versions/blob/main/versions-manifest.json
-          boost_version: ${{BOOST_VERSION}}
+          boost_version: ${{env.BOOST_VERSION}}
           platform_version: 2019
           toolset: msvc
 
