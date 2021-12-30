@@ -51,11 +51,11 @@ jobs:
       # run build command
       - name: Build spout
         run: |
-          echo "boost root: ${{steps.install-boost.outputs.BOOST_ROOT}}"
+          echo "boost root: ${{steps.install-boost.outputs.BOOST_ROOT}} Inlclude: $INCLUDE"
           # ls ${{steps.install-boost.outputs.BOOST_ROOT}}/include/boost-1_78/boost
           cd SpoutSDK
           mkdir build
-          msbuild "Spout for Python.sln" /property:Configuration=Release /p:OutputPath=build /p:IncludePath="${{steps.install-boost.outputs.BOOST_ROOT}}\include\boost-1_78;$(IncludePath)"
+          msbuild "Spout for Python.sln" /property:Configuration=Release /p:OutputPath=build /p:IncludePath="${{steps.install-boost.outputs.BOOST_ROOT}}\include\boost-1_78;$INCLUDE"
           ls build
           ls x64\Release
         env:
