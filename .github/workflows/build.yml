@@ -56,14 +56,15 @@ jobs:
           # ls ${{steps.install-boost.outputs.BOOST_ROOT}}/lib
           # ls ${{steps.install-boost.outputs.BOOST_ROOT}}/libs
 
-          pushd ${{steps.install-boost.outputs.BOOST_ROOT}}
-          b2 --stagedir=./stage/x64 address-model=64 --build-type=complete --toolset=msvc --threading=multi --runtime-link=shared --variant=release
+          cd "${{steps.install-boost.outputs.BOOST_ROOT}}"
+          ls .
+          b2.exe --stagedir=./stage/x64 address-model=64 --build-type=complete --toolset=msvc --threading=multi --runtime-link=shared --variant=release
           ls ./stage/x64
-          popd
 
       # run build command
       - name: Build spout
         run: |
+          cd "${{ github.workspace }}"
           cd SpoutSDK
           mkdir build
           msbuild "Spout for Python.sln" /property:Configuration=Release /p:OutputPath=build /p:BoostDir="${{steps.install-boost.outputs.BOOST_ROOT}}" /p:PythonDir="${{ env.pythonLocation }}"
