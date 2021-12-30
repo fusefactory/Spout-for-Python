@@ -52,10 +52,10 @@ jobs:
       - name: Build spout
         run: |
           echo "boost root:"
-          ls boost/boost
+          ls boost/boost/include
           cd SpoutSDK
           mkdir build
-          msbuild "Spout for Python.sln" /property:Configuration=Release /p:OutputPath=build /p:AdditionalIncludePaths="../boost/boost"
+          msbuild "Spout for Python.sln" /property:Configuration=Release /p:OutputPath=build /p:AdditionalIncludePaths="../boost/boost/include"
           ls build
           ls x64\Release
 
