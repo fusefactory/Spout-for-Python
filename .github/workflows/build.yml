@@ -58,7 +58,7 @@ jobs:
 
           cd "${{steps.install-boost.outputs.BOOST_ROOT}}"
           ls .
-          b2.exe --stagedir=./stage/x64 address-model=64 --build-type=complete --toolset=msvc --threading=multi --runtime-link=shared --variant=release
+          ./b2.exe --stagedir=./stage/x64 address-model=64 --build-type=complete --toolset=msvc --threading=multi --runtime-link=shared --variant=release
           ls ./stage/x64
 
       # run build command
