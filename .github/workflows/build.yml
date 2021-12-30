@@ -53,6 +53,7 @@ jobs:
         run: |
           echo "boost root: ${{steps.install-boost.outputs.BOOST_ROOT}}"
           ls ${{steps.install-boost.outputs.BOOST_ROOT}}/
+          (get-command python).Path
           env
           $env:path
           cd SpoutSDK
