@@ -34,17 +34,10 @@ jobs:
           echo ${{ github.workspace }}
           cd ${{ github.workspace }}
 
-      - name: Cache boost
-        uses: actions/cache@v2
-        id: cache-boost
-        with:
-          # Set the default path as the path to cache
-          path: ${{env.GITHUB_WORKSPACE}}/boost/boost
-          # Use the version as the key to only cache the correct version
-          key: boost-${{env.BOOST_VERSION}}
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.1
 
       - name: Install boost
-        if: steps.cache-boost.outputs.cache-hit != 'true'
         uses: MarkusJx/install-boost@v2.1.0
         id: install-boost
         with:
@@ -55,20 +48,14 @@ jobs:
           platform_version: 2019
           toolset: msvc
 
-      - name: Preqrequisites
-        run: |
-          git submodule update --init --recursive
-
-      - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.1
-
       # run build command
       - name: Build spout
         run: |
           cd SpoutSDK
           mkdir build
-          MSBuild.exe "Spout for Python.sln" /property:Configuration=Release /p:OutputPath=build
+          msbuild "Spout for Python.sln" /property:Configuration=Release /p:OutputPath=build
           ls build
+          ls x64\Release
 
       # upload dist
       - name: Upload binaries to release
