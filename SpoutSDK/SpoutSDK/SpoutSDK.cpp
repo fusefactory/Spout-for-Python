@@ -17,7 +17,7 @@ BOOST_PYTHON_MODULE(SpoutSDK)
 		.def("pyCreateReceiver", &SpoutReceiver::pyCreateReceiver)
 		.def("pyReceiveTexture", &SpoutReceiver::pyReceiveTexture)
 		.def("ReleaseReceiver", &SpoutReceiver::ReleaseReceiver)
-		.def("SelectSenderPanel", &SpoutReceiver::SelectSenderPanel)
+		.def("SetReceiverName", &SpoutReceiver::SetReceiverName)
 		.def("GetWidth", &SpoutReceiver::GetWidth)
 		.def("GetHeight", &SpoutReceiver::GetHeight)
 		;

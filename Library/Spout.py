@@ -83,6 +83,7 @@ class Spout() :
         
         # init spout receiver
         self.spoutReceiver[id] = SpoutSDK.SpoutReceiver()
+        self.spoutReceiver[id].SetReceiverName(self.receiverName[id])
 
         self.receiverWidth[id] = self.spoutReceiver[id].GetWidth( self.receiverName[id] )
         self.receiverHeight[id] = self.spoutReceiver[id].GetHeight( self.receiverName[id] )
@@ -230,16 +231,22 @@ class Spout() :
 
             self.spoutSender[id].SendTexture(self.textureSendID[id].item(), GL_TEXTURE_2D, self.senderWidth[id], self.senderHeight[id], False, 0)
 
+    def quit(self):
+        for i in range(0,self.n_rec):
+            self.spoutReceiver[i].ReleaseReceiver()
+        for i in range(0,self.n_send):
+            self.spoutSender[i].ReleaseSender()
+
+        pygame.quit()
+        quit()
+
     def check(self):
         """
         Check on closed window
         """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                for i in range(0,self.n_rec):
-                    self.spoutReceiver[i].ReleaseReceiver()
-                pygame.quit()
-                quit()
+                self.quit()
 
     def empty(self):
         """
