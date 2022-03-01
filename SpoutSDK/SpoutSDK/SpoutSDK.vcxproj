@@ -22,33 +22,33 @@
     <ProjectGuid>{9E8255CD-175A-4421-9B0D-F634E889B46B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>SpoutSDK</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>SpoutSDK</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -90,7 +90,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SPOUTFORPYTHON_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>D:\a\Spout-for-Python\Spout-for-Python\boost\boost\include\boost-1_78;C:\hostedtoolcache\windows\Python\3.8.10\x64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -106,13 +106,13 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;SPOUTFORPYTHON_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>D:\a\Spout-for-Python\Spout-for-Python\boost\boost\include\boost-1_78;C:\hostedtoolcache\windows\Python\3.8.10\x64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(BoostDir);$(PythonDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\a\Spout-for-Python\Spout-for-Python\boost\boost\include\boost-1_78;C:\hostedtoolcache\windows\Python\3.8.10\x64\include;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(BoostDir)\lib;$(BoostDir)\stage\x64\lib;$(PythonDir)\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -125,7 +125,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SPOUTFORPYTHON_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>D:\a\Spout-for-Python\Spout-for-Python\boost\boost\include\boost-1_78;C:\hostedtoolcache\windows\Python\3.8.10\x64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -145,7 +145,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;SPOUTFORPYTHON_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(BoostDir)\include\boost-1_78;$(PythonDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(BoostDir);$(PythonDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -153,7 +153,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(BoostDir)\lib;$(BoostDir)\stage\x64;$(PythonDir)\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(BoostDir)\lib;$(BoostDir)\stage\x64\lib;$(PythonDir)\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -161,29 +161,28 @@
     <ClInclude Include="SpoutCommon.h" />
     <ClInclude Include="SpoutCopy.h" />
     <ClInclude Include="SpoutDirectX.h" />
-    <ClInclude Include="SpoutGLDXinterop.h" />
+    <ClInclude Include="SpoutFrameCount.h" />
+    <ClInclude Include="SpoutGL.h" />
     <ClInclude Include="SpoutGLextensions.h" />
-    <ClInclude Include="SpoutMemoryShare.h" />
     <ClInclude Include="SpoutReceiver.h" />
-    <ClInclude Include="SpoutSDK.h" />
     <ClInclude Include="SpoutSender.h" />
-    <ClInclude Include="SpoutSenderMemory.h" />
     <ClInclude Include="SpoutSenderNames.h" />
     <ClInclude Include="SpoutSharedMemory.h" />
+    <ClInclude Include="SpoutUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Spout.cpp" />
+    <ClCompile Include="SpoutSDK.cpp" />
     <ClCompile Include="SpoutCopy.cpp" />
     <ClCompile Include="SpoutDirectX.cpp" />
-    <ClCompile Include="SpoutGLDXinterop.cpp" />
+    <ClCompile Include="SpoutFrameCount.cpp" />
+    <ClCompile Include="SpoutGL.cpp" />
     <ClCompile Include="SpoutGLextensions.cpp" />
-    <ClCompile Include="SpoutMemoryShare.cpp" />
     <ClCompile Include="SpoutReceiver.cpp" />
-    <ClCompile Include="SpoutSDK.cpp" />
     <ClCompile Include="SpoutSender.cpp" />
-    <ClCompile Include="SpoutSenderMemory.cpp" />
     <ClCompile Include="SpoutSenderNames.cpp" />
     <ClCompile Include="SpoutSharedMemory.cpp" />
+    <ClCompile Include="SpoutUtils.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

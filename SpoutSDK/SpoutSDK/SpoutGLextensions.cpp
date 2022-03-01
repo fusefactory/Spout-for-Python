@@ -5,7 +5,7 @@
 //
 //			Used for load of openGL extensions with option
 //			to use Glew or disable dynamic load of specific extensions
-//			See spoutGLext.h
+//			See spoutGLextions.h
 //
 //			01.09.15	- added MessageBox error warning in LoadGLextensions
 //			11.11.15	- removed (unsigned) cast from GetProcAddress in FBO extensions
@@ -15,12 +15,28 @@
 //			12.08.16	- Removed "isExtensionSupported" (https://github.com/leadedge/Spout2/issues/19)
 //			13.01.17	- Removed try/catch from wglDXRegisterObjectNV calls
 //						- Clean up #ifdefs in all functions - return true if FBO of PBO are defined elsewhere
+//			27.10.18	- Test for opengl context in loadglextensions
+//			21.11.18	- Add copy extensions for future use
+//			23.11.18	- Fix test for wglDXCloseDeviceNV in loadInteropExtensions
+//			14.09.20	- Add legacyOpenGL define test in "isExtensionSupported" to avoid glGetString
+//						  Thanks to Alexandre Buge (https://github.com/Qlex42) for the notice and fix
+//			23.09.20	- Correct isExtensionSupported
+//						  Include SpoutCommon.h for legacyOpenGL
+//			11.12.20	- Add glGetBufferParameterivEXT
+//			08.11.21	- Add glMapBufferRangeEXT
+//			09.11.21	- Add glClientWaitSyncEXT, glDeleteSyncEXT, glFenceSyncEXT
+//			13.11.21	- Add "standalone" define in SpoutGLextensions.h for independent use
+//						  without dependence on Spout source files.
+//						- Add "legacyOpenGL" define in SpoutGLextensions.h for standalone.
+//			14.11.21	- Add ExtLog for Spout error logs including printf for standalone.
+//			23.11.21	- Add debugging console print to loadPBOextensions
+//						  
 //
 
-		Copyright (c) 2014-2017, Lynn Jarvis. All rights reserved.
+	Copyright (c) 2014-2022, Lynn Jarvis. All rights reserved.
 
-		Redistribution and use in source and binary forms, with or without modification, 
-		are permitted provided that the following conditions are met:
+	Redistribution and use in source and binary forms, with or without modification, 
+	are permitted provided that the following conditions are met:
 
 		1. Redistributions of source code must retain the above copyright notice, 
 		   this list of conditions and the following disclaimer.
@@ -29,18 +45,18 @@
 		   this list of conditions and the following disclaimer in the documentation 
 		   and/or other materials provided with the distribution.
 
-		THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"	AND ANY 
-		EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES 
-		OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE	ARE DISCLAIMED. 
-		IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
-		INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-		PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-		INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-		LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-		OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"	AND ANY 
+	EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES 
+	OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE	ARE DISCLAIMED. 
+	IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
+	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+	PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+	LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+	OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "spoutGLextensions.h"
+#include "SpoutGLextensions.h"
 
 #ifndef USE_GLEW
 
@@ -89,9 +105,32 @@ glGenBuffersPROC						glGenBuffersEXT					= NULL;
 glDeleteBuffersPROC						glDeleteBuffersEXT				= NULL;
 glBindBufferPROC						glBindBufferEXT					= NULL;
 glBufferDataPROC						glBufferDataEXT					= NULL;
+glBufferStoragePROC						glBufferStorageEXT				= NULL;
 glMapBufferPROC							glMapBufferEXT					= NULL;
+// https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glMapBufferRange.xhtml
+glMapBufferRangePROC					glMapBufferRangeEXT				= NULL;
 glUnmapBufferPROC						glUnmapBufferEXT				= NULL;
+glGetBufferParameterivPROC				glGetBufferParameterivEXT		= NULL;
+glClientWaitSyncPROC					glClientWaitSyncEXT				= NULL;
+glDeleteSyncPROC						glDeleteSyncEXT					= NULL;
+glFenceSyncPROC							glFenceSyncEXT					= NULL;
+
 #endif
+
+//-------------------
+// Copy extensions
+// (for future use)
+//-------------------
+#ifdef USE_COPY_EXTENSIONS
+PFNGLCOPYIMAGESUBDATAPROC glCopyImageSubData = NULL;
+glGetInternalFormativPROC glGetInternalFormativ = NULL;
+
+#endif
+
+//---------------------------
+// Context creation extension
+//---------------------------
+PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
 
 #endif
 
@@ -106,41 +145,70 @@ bool loadInteropExtensions() {
 	else
 		return false;
 #else
+
+	// Here we provide warnings for individual extensions
+
 	wglDXOpenDeviceNV = (PFNWGLDXOPENDEVICENVPROC)wglGetProcAddress("wglDXOpenDeviceNV");
 	if(!wglDXOpenDeviceNV) {
+		ExtLog(LOG_WARNING, "loadInteropExtensions : wglDXOpenDeviceNV NULL");
 		return false;
 	}
+
 	wglDXRegisterObjectNV = (PFNWGLDXREGISTEROBJECTNVPROC)wglGetProcAddress("wglDXRegisterObjectNV");
 	if(!wglDXRegisterObjectNV) {
+		ExtLog(LOG_WARNING, "loadInteropExtensions : wglDXRegisterObjectNV NULL");
 		return false;
 	}
+
 	wglDXUnregisterObjectNV = (PFNWGLDXUNREGISTEROBJECTNVPROC)wglGetProcAddress("wglDXUnregisterObjectNV");
 	if(!wglDXUnregisterObjectNV) {
+		ExtLog(LOG_WARNING, "loadInteropExtensions : wglDXUnregisterObjectNV NULL");
 		return false;
 	}
+
 	wglDXSetResourceShareHandleNV = (PFNWGLDXSETRESOURCESHAREHANDLENVPROC)wglGetProcAddress("wglDXSetResourceShareHandleNV");
 	if(!wglDXSetResourceShareHandleNV) {
+		ExtLog(LOG_WARNING, "loadInteropExtensions : wglDXSetResourceShareHandleNV NULL");
 		return false;
 	}
+
 	wglDXLockObjectsNV = (PFNWGLDXLOCKOBJECTSNVPROC)wglGetProcAddress("wglDXLockObjectsNV");
 	if(!wglDXLockObjectsNV)	{
+		ExtLog(LOG_WARNING, "loadInteropExtensions : wglDXLockObjectsNV NULL");
 		return false;
 	}
+
 	wglDXUnlockObjectsNV = (PFNWGLDXUNLOCKOBJECTSNVPROC)wglGetProcAddress("wglDXUnlockObjectsNV");
 	if(!wglDXUnlockObjectsNV) {
+		ExtLog(LOG_WARNING, "loadInteropExtensions : wglDXUnlockObjectsNV NULL");
 		return false;
 	}
+
 	wglDXCloseDeviceNV = (PFNWGLDXCLOSEDEVICENVPROC)wglGetProcAddress("wglDXCloseDeviceNV");
-	if(!wglDXUnlockObjectsNV) {
+	if(!wglDXCloseDeviceNV) {
+		ExtLog(LOG_WARNING, "loadInteropExtensions : wglDXCloseDeviceNV NULL");
 		return false;
 	}
 
 	return true;
+
 #endif
 
 }
 
 bool loadFBOextensions() {
+
+	// Here we use 'EXT_framebuffer_object'
+	// But for OpenGL version >= 3, framebuffer objects are core.
+	// Control this using the "legacyOpenGL" define in SpoutGLextensions.h
+
+	// Thanks and credit to Menno Vink of Resolume for sharing the POSTFIX code
+	
+#ifdef legacyOpenGL
+	#define FBO_EXTENSION_POSTFIX "EXT"
+#else
+	#define FBO_EXTENSION_POSTFIX
+#endif
 
 #ifdef USE_FBO_EXTENSIONS
 
@@ -150,24 +218,25 @@ bool loadFBOextensions() {
 	else
 		return false;
 	#else
-	glBindFramebufferEXT						= (glBindFramebufferEXTPROC)wglGetProcAddress("glBindFramebufferEXT");
-	glBindRenderbufferEXT						= (glBindRenderbufferEXTPROC)wglGetProcAddress("glBindRenderbufferEXT");
-	glCheckFramebufferStatusEXT					= (glCheckFramebufferStatusEXTPROC)wglGetProcAddress("glCheckFramebufferStatusEXT");
-	glDeleteFramebuffersEXT						= (glDeleteFramebuffersEXTPROC)wglGetProcAddress("glDeleteFramebuffersEXT");
-	glDeleteRenderBuffersEXT					= (glDeleteRenderBuffersEXTPROC)wglGetProcAddress("glDeleteRenderbuffersEXT");
-	glFramebufferRenderbufferEXT				= (glFramebufferRenderbufferEXTPROC)wglGetProcAddress("glFramebufferRenderbufferEXT");
-	glFramebufferTexture1DEXT					= (glFramebufferTexture1DEXTPROC)wglGetProcAddress("glFramebufferTexture1DEXT");
-	glFramebufferTexture2DEXT					= (glFramebufferTexture2DEXTPROC)wglGetProcAddress("glFramebufferTexture2DEXT");
-	glFramebufferTexture3DEXT					= (glFramebufferTexture3DEXTPROC)wglGetProcAddress("glFramebufferTexture3DEXT");
-	glGenFramebuffersEXT						= (glGenFramebuffersEXTPROC)wglGetProcAddress("glGenFramebuffersEXT");
-	glGenRenderbuffersEXT						= (glGenRenderbuffersEXTPROC)wglGetProcAddress("glGenRenderbuffersEXT");
-	glGenerateMipmapEXT							= (glGenerateMipmapEXTPROC)wglGetProcAddress("glGenerateMipmapEXT");
-	glGetFramebufferAttachmentParameterivEXT	= (glGetFramebufferAttachmentParameterivEXTPROC)wglGetProcAddress("glGetFramebufferAttachmentParameterivEXT");
-	glGetRenderbufferParameterivEXT				= (glGetRenderbufferParameterivEXTPROC)wglGetProcAddress("glGetRenderbufferParameterivEXT");
-	glIsFramebufferEXT							= (glIsFramebufferEXTPROC)wglGetProcAddress("glIsFramebufferEXT");
-	glIsRenderbufferEXT							= (glIsRenderbufferEXTPROC)wglGetProcAddress("glIsRenderbufferEXT");
-	glRenderbufferStorageEXT					= (glRenderbufferStorageEXTPROC)wglGetProcAddress("glRenderbufferStorageEXT");
-	
+
+	glBindFramebufferEXT                     = (glBindFramebufferEXTPROC)wglGetProcAddress("glBindFramebuffer" FBO_EXTENSION_POSTFIX);
+	glBindRenderbufferEXT                    = (glBindRenderbufferEXTPROC)wglGetProcAddress("glBindRenderbuffer" FBO_EXTENSION_POSTFIX);
+	glCheckFramebufferStatusEXT              = (glCheckFramebufferStatusEXTPROC)wglGetProcAddress("glCheckFramebufferStatus" FBO_EXTENSION_POSTFIX);
+	glDeleteFramebuffersEXT                  = (glDeleteFramebuffersEXTPROC)wglGetProcAddress("glDeleteFramebuffers" FBO_EXTENSION_POSTFIX);
+	glDeleteRenderBuffersEXT                 = (glDeleteRenderBuffersEXTPROC)wglGetProcAddress("glDeleteRenderbuffers" FBO_EXTENSION_POSTFIX);
+	glFramebufferRenderbufferEXT             = (glFramebufferRenderbufferEXTPROC)wglGetProcAddress("glFramebufferRenderbuffer" FBO_EXTENSION_POSTFIX);
+	glFramebufferTexture1DEXT                = (glFramebufferTexture1DEXTPROC)wglGetProcAddress("glFramebufferTexture1D" FBO_EXTENSION_POSTFIX);
+	glFramebufferTexture2DEXT                = (glFramebufferTexture2DEXTPROC)wglGetProcAddress("glFramebufferTexture2D" FBO_EXTENSION_POSTFIX);
+	glFramebufferTexture3DEXT                = (glFramebufferTexture3DEXTPROC)wglGetProcAddress("glFramebufferTexture3D" FBO_EXTENSION_POSTFIX);
+	glGenFramebuffersEXT                     = (glGenFramebuffersEXTPROC)wglGetProcAddress("glGenFramebuffers" FBO_EXTENSION_POSTFIX);
+	glGenRenderbuffersEXT                    = (glGenRenderbuffersEXTPROC)wglGetProcAddress("glGenRenderbuffers" FBO_EXTENSION_POSTFIX);
+	glGenerateMipmapEXT                      = (glGenerateMipmapEXTPROC)wglGetProcAddress("glGenerateMipmap" FBO_EXTENSION_POSTFIX);
+	glGetFramebufferAttachmentParameterivEXT = (glGetFramebufferAttachmentParameterivEXTPROC)wglGetProcAddress("glGetFramebufferAttachmentParameteriv" FBO_EXTENSION_POSTFIX);
+	glGetRenderbufferParameterivEXT          = (glGetRenderbufferParameterivEXTPROC)wglGetProcAddress("glGetRenderbufferParameteriv" FBO_EXTENSION_POSTFIX);
+	glIsFramebufferEXT                       = (glIsFramebufferEXTPROC)wglGetProcAddress("glIsFramebuffer" FBO_EXTENSION_POSTFIX);
+	glIsRenderbufferEXT                      = (glIsRenderbufferEXTPROC)wglGetProcAddress("glIsRenderbuffer" FBO_EXTENSION_POSTFIX);
+	glRenderbufferStorageEXT                 = (glRenderbufferStorageEXTPROC)wglGetProcAddress("glRenderbufferStorage" FBO_EXTENSION_POSTFIX);
+
 	if	  ( glBindFramebufferEXT						!= NULL && 
 			glBindRenderbufferEXT						!= NULL && 
 			glCheckFramebufferStatusEXT					!= NULL && 
@@ -214,18 +283,17 @@ bool loadBLITextension() {
 
 bool loadSwapExtensions()
 {
-	wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
+	wglSwapIntervalEXT    = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
 	wglGetSwapIntervalEXT = (PFNWGLGETSWAPINTERVALEXTPROC)wglGetProcAddress("wglGetSwapIntervalEXT");
 	if(wglSwapIntervalEXT == NULL || wglGetSwapIntervalEXT == NULL) {
 		return false;
 	}
-
 	return true;
-
 }
 
 
-// =================== PBO support 18.01.14 ==================
+// =================== PBO support ==================
+// Include sync here - could be separated later
 bool loadPBOextensions() 
 {
 
@@ -237,19 +305,29 @@ bool loadPBOextensions()
 	else
 		return false;
 	#else
-	glGenBuffersEXT	= (glGenBuffersPROC)wglGetProcAddress("glGenBuffers");
-	glDeleteBuffersEXT = (glDeleteBuffersPROC)wglGetProcAddress("glDeleteBuffers");
-	glBindBufferEXT	= (glBindBufferPROC)wglGetProcAddress("glBindBuffer");
-	glBufferDataEXT	= (glBufferDataPROC)wglGetProcAddress("glBufferData");
-	glMapBufferEXT = (glMapBufferPROC)wglGetProcAddress("glMapBuffer");
-	glUnmapBufferEXT = (glUnmapBufferPROC)wglGetProcAddress("glUnmapBuffer");
+	glGenBuffersEXT	    = (glGenBuffersPROC)wglGetProcAddress("glGenBuffers");
+	glDeleteBuffersEXT  = (glDeleteBuffersPROC)wglGetProcAddress("glDeleteBuffers");
+	glBindBufferEXT	    = (glBindBufferPROC)wglGetProcAddress("glBindBuffer");
+	glBufferDataEXT	    = (glBufferDataPROC)wglGetProcAddress("glBufferData");
+	glBufferStorageEXT	= (glBufferStoragePROC)wglGetProcAddress("glBufferStorage");
+	glMapBufferEXT      = (glMapBufferPROC)wglGetProcAddress("glMapBuffer");
+	glMapBufferRangeEXT = (glMapBufferRangePROC)wglGetProcAddress("glMapBufferRange");
+	glUnmapBufferEXT    = (glUnmapBufferPROC)wglGetProcAddress("glUnmapBuffer");
+	glGetBufferParameterivEXT = (glGetBufferParameterivPROC)wglGetProcAddress("glGetBufferParameteriv");
+	glClientWaitSyncEXT = (glClientWaitSyncPROC)wglGetProcAddress("glClientWaitSync");
+	glDeleteSyncEXT     = (glDeleteSyncPROC)wglGetProcAddress("glDeleteSync");
+	glFenceSyncEXT      = (glFenceSyncPROC)wglGetProcAddress("glFenceSync");
 
-	if(glGenBuffersEXT != NULL && glDeleteBuffersEXT != NULL
-	&& glBindBufferEXT != NULL && glBufferDataEXT    != NULL
-	&& glMapBufferEXT  != NULL && glUnmapBufferEXT   != NULL) {
+	if(glGenBuffersEXT  != NULL && glDeleteBuffersEXT  != NULL
+	&& glBindBufferEXT  != NULL && glBufferDataEXT     != NULL
+	&& glBufferStorageEXT != NULL && glMapBufferEXT   != NULL
+	&& glMapBufferRangeEXT != NULL && glUnmapBufferEXT != NULL
+	&& glGetBufferParameterivEXT != NULL
+	&& glClientWaitSyncEXT != NULL && glDeleteSyncEXT != NULL && glFenceSyncEXT != NULL) {
 		return true;
 	}
 	else {
+		ExtLog(LOG_WARNING, "loadPBOextensions() fail");
 		return false;
 	}
 	#endif
@@ -260,6 +338,75 @@ bool loadPBOextensions()
 #endif
 }
 
+
+
+bool loadCopyExtensions()
+{
+
+#ifdef USE_COPY_EXTENSIONS
+
+#ifdef USE_GLEW
+	if (glCopyImageSubData)
+		return true;
+	else
+		return false;
+#else
+
+	// Copy extensions
+	glCopyImageSubData = (PFNGLCOPYIMAGESUBDATAPROC)wglGetProcAddress("glCopyImageSubData");
+
+	glGetInternalFormativ = (glGetInternalFormativPROC)wglGetProcAddress("glGetInternalFormativ");
+
+	if (glCopyImageSubData != NULL) {
+		return true;
+	}
+	else {
+		return false;
+	}
+#endif
+
+#else
+	// COPY extensions defined elsewhere
+	return true;
+#endif
+
+}
+
+
+bool loadContextExtension()
+{
+
+#ifdef USE_CONTEXT_EXTENSION
+
+	// Return if loadContextExtension() has been called before loading all the extensions
+	if (wglCreateContextAttribsARB) {
+		return true;
+	}
+
+#ifdef USE_GLEW
+	if (wglCreateContextAttribsARB)
+		return true;
+	else
+		return false;
+#else
+
+	// Context creation extension
+	wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
+
+	if (wglCreateContextAttribsARB != NULL) {
+		return true;
+	}
+	else {
+		return false;
+	}
+#endif
+
+#else
+	// Context creation extension defined elsewhere
+	return true;
+#endif
+
+}
 
 
 bool InitializeGlew()
@@ -297,6 +444,7 @@ bool InitializeGlew()
 #endif
 }
 
+
 //
 // Load GL extensions
 //
@@ -304,31 +452,68 @@ unsigned int loadGLextensions() {
 	
 	unsigned int caps = 0; // as per elio glextensions
 
-	// printf("loadGLextensions\n");
+	// wglGetProcAddress requires an OpenGL rendering context
+	HGLRC glContext = wglGetCurrentContext();
+	if (glContext == NULL) {
+		ExtLog(LOG_ERROR, "loadGLextensions : no OpenGL context");
+		return 0;
+	}
 
 #ifdef USE_GLEW
 	InitializeGlew(); // probably needs failure check
 #endif
 
-	// Check for FBO extensions first - no use continuing without them
-	if(!loadFBOextensions()) {
-		printf("    loadFBOextensions fail\n");
+	// Check for FBO extensions - no use continuing without them
+	if (loadFBOextensions()) {
+		caps |= GLEXT_SUPPORT_FBO;
+	}
+	else {
+		ExtLog(LOG_ERROR, "loadGLextensions : loadFBOextensions fail");
 		return 0;
 	}
 
-	caps |= GLEXT_SUPPORT_FBO;
-
-	// Load PBO extension and FBO blit extension
+	// Load other extensions
 	if(loadBLITextension()) {
 		caps |= GLEXT_SUPPORT_FBO_BLIT;
+	}
+	else {
+		ExtLog(LOG_WARNING, "loadGLextensions : loadBLITextensions fail");
 	}
 
 	if(loadSwapExtensions()) {
 		caps |= GLEXT_SUPPORT_SWAP;
 	}
+	else {
+		ExtLog(LOG_WARNING, "loadGLextensions : loadSwapExtensions fail");
+	}
 
 	if(loadPBOextensions()) {
 		caps |= GLEXT_SUPPORT_PBO;
+	}
+	else {
+		ExtLog(LOG_WARNING, "loadGLextensions : loadPBOextensions fail");
+	}
+
+	if (loadCopyExtensions()) {
+		caps |= GLEXT_SUPPORT_COPY;
+	}
+	else {
+		ExtLog(LOG_WARNING, "loadGLextensions : loadCopyExtensions fail");
+	}
+
+	if (loadContextExtension()) {
+		caps |= GLEXT_SUPPORT_CONTEXT;
+	}
+	else {
+		ExtLog(LOG_WARNING, "loadGLextensions : loadContextExtension fail");
+	}
+
+	// Load wgl interop extensions
+	if (loadInteropExtensions()) {
+		caps |= GLEXT_SUPPORT_NVINTEROP;
+	}
+	else {
+		ExtLog(LOG_WARNING, "loadGLextensions : loadInteropExtensions fail");
 	}
 
 	// Find out whether bgra extensions are supported at compile and runtime
@@ -336,17 +521,12 @@ unsigned int loadGLextensions() {
 	//
 	// "isExtensionSupported" code yet to be fully tested for
 	// various compilers, operating systems and environments.
-	// Activate this code if you are confident that it works OK.
+	// De-activate this function if you have problems.
 	// 
-	// if(isExtensionSupported("GL_EXT_bgra")) {
+	if (isExtensionSupported("GL_EXT_bgra")) {
 		caps |= GLEXT_SUPPORT_BGRA;
-	// }
-#endif
-
-	// Load wgl interop extensions - not needed for memoryshare
-	if (loadInteropExtensions()) {
-		caps |= GLEXT_SUPPORT_NVINTEROP;
 	}
+#endif
 
 	return caps;
 
@@ -355,97 +535,102 @@ unsigned int loadGLextensions() {
 
 //
 // Used to determine support for GL_EXT_bgra extensions
-// Currently not used
-/*
+//
 bool isExtensionSupported(const char *extension)
 {
-	const char * extensionsstr = NULL;
-	const char * versionstr = NULL;
-	const char * start;
-	const char * exc;
-	char *where, *terminator;
-	int n, i;
-
-	// Extension names should not have spaces.
-	where = (char *)strchr(extension, ' ');
-	if (where || *extension == '\0')
+	if (!extension || *extension == '\0')
 		return false;
 
-	versionstr = (const char *)glGetString(GL_VERSION);
-	// printf("OpenGL version (%s)\n", versionstr);
+	// Extension names should not have spaces.
+	if(strchr(extension, ' '))
+		return false;
 
-	extensionsstr = (const char *)glGetString(GL_EXTENSIONS);
-
-	#ifndef GL_NUM_EXTENSIONS
-	#define GL_NUM_EXTENSIONS 0x821D // in gl3.h
-	#endif
-
-	if(extensionsstr == NULL) {
-
-		// printf("glGetString(GL_VERSION) not supported\n");
-
-		//
-		// glGetstring not supported
-		//
-		// Code adapted from : https://bitbucket.org/Coin3D/coin/issues/54/support-for-opengl-3x-specifically
-		//
-
-		typedef GLubyte* (APIENTRY * COIN_PFNGLGETSTRINGIPROC)(GLenum enm, GLuint idx);
-		COIN_PFNGLGETSTRINGIPROC glGetStringi = 0;
-		glGetStringi = (COIN_PFNGLGETSTRINGIPROC)wglGetProcAddress("glGetStringi");
-		if(glGetStringi != NULL) {
-			glGetIntegerv(GL_NUM_EXTENSIONS, &n);
-			// printf("%d extensions\n", n);
-			if(n > 0) {
-				for (i = 0; i < n; i++) {
-					exc = (const char *)glGetStringi(GL_EXTENSIONS, i);
-					if(strcmp(exc, extension) == 0) {
+// glGetString can cause problems for core OpenGL context
+#ifdef legacyOpenGL
+	const char * extensionsstr = (const char *)glGetString(GL_EXTENSIONS);
+	if (extensionsstr) {
+		std::string extensions = extensionsstr;
+		std::size_t found = extensions.find(extension);
+		if (found != std::string::npos) {
+			return true;
+		}
+		ExtLog(LOG_WARNING, "isExtensionSupported : extension [%s] not found", extension);
+		return false;
+	}
+#else
+	//
+	// glGetstring not supported
+	// for a core GL context
+	//
+	// Code adapted from : https://bitbucket.org/Coin3D/coin/issues/54/support-for-opengl-3x-specifically
+	// Also : http://www.opengl.org/resources/features/OGLextensions/
+	//
+	int n = 0;
+	int i = 0;
+	typedef GLubyte* (APIENTRY * COIN_PFNGLGETSTRINGIPROC)(GLenum enm, GLuint idx);
+	COIN_PFNGLGETSTRINGIPROC glGetStringi = 0;
+	glGetStringi = (COIN_PFNGLGETSTRINGIPROC)wglGetProcAddress("glGetStringi");
+	if(glGetStringi != NULL) {
+		glGetIntegerv(GL_NUM_EXTENSIONS, &n);
+		if(n > 0) {
+			const char * exc = nullptr;
+			for (i = 0; i < n; i++) {
+				exc = (const char *)glGetStringi(GL_EXTENSIONS, (GLuint)i);
+				if(exc) {
+					if(strcmp(exc, extension) == 0)
 						break;
-					}
-				}
-				if(i < n) {
-					// printf("glGetStringi(%d) %s found\n", i, exc);
-					return true;
 				}
 			}
-			else {
-				// printf("glGetIntegerv(GL_NUM_EXTENSIONS) did not return a value\nso unable to get extensions for this gl driver\n");
+			if(exc && i < n) {
+				return true;
 			}
+			ExtLog(LOG_WARNING, "isExtensionSupported : extension [%s] not found", extension);
+			return false;
 		}
 		else {
-			// printf("glGetString(GL_EXTENSIONS) returned null, but glGetStringi is NULL,\nso unable to get extensions for this gl driver\n");
-		}
-	} 
-	else {
-
-		// printf("glGetString(GL_VERSION) supported\n");
-
-		//
-		// glGetString supported
-		//
-		// Code adapted from : ftp://ftp.sgi.com/opengl/contrib/blythe/advanced99/notes/node395.html
-		//
-
-		// It takes a bit of care to be fool-proof about parsing the
-		// OpenGL extensions string.  Don't be fooled by sub-strings, etc.
-		start = extensionsstr;
-		for (;;) {
-			where = (char *)strstr((const char *)start, extension);
-			if (!where)
-				break;
-			terminator = where + strlen(extension);
-		    if (where == start || *(where - 1) == ' ') {
-				if (*terminator == ' ' || *terminator == '\0') {
-					*terminator = '\0';
-					// printf("Extension %s found\n", where);
-					return true;
-				}
-			}
-			start = terminator;
+			ExtLog(LOG_WARNING, "isExtensionSupported : glGetIntegerv(GL_NUM_EXTENSIONS) did not return a value");
 		}
 	}
+	else {
+		ExtLog(LOG_WARNING, "isExtensionSupported : glGetStringi not found");
+	}
+#endif
 
+	ExtLog(LOG_WARNING, "isExtensionSupported : unable to find extension [%s]", extension);
+	
 	return false;
 
 }
-*/
+
+void ExtLog(LogLevel level, const char* format, ...)
+{
+	va_list args;
+	va_start(args, format);
+
+#ifdef standalone
+	char currentLog[512];
+	vsprintf_s(currentLog, 512, format, args);
+	std::string logstring;
+	logstring = "SpoutGLextensions : ";
+	switch (level) {
+		case LOG_NOTICE:
+			logstring += "Notice - ";
+			break;
+		case LOG_WARNING:
+			logstring += "Warning - ";
+			break;
+		case LOG_ERROR:
+			logstring += "Error - ";
+			break;
+		default:
+			break;
+	}
+	logstring += currentLog;
+	printf("%s\n", currentLog);
+	// Note that this will not be recorded in a Spout log file.
+#else
+	_doLog(static_cast<SpoutLogLevel>(level), format, args); // SpoutUtils function
+#endif
+
+	va_end(args);
+}
