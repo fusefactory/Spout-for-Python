@@ -48,3 +48,4 @@ jobs:
           msbuild "Spout for Python.sln" /property:Configuration=Release /p:OutputPath=build /p:BoostDir="${{ github.workspace }}/boost" /p:PythonDir="${{ env.pythonLocation }}"
           ls build
           ls x64\Release
+          
