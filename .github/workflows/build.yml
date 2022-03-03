@@ -1,25 +1,13 @@
 name: Build
 
-on:
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Version Tag'
-        required: false
-        default: 'v0.0.1'
-
 jobs:
   build:
     strategy:
       matrix:
         os: [ 'windows-latest' ]
-        python-version: [ '3.8' ] # '3.5', '3.6', '3.7', '3.8', '3.9', '3.10'
+        python-version: [ '3.9' ] # '3.5', '3.6', '3.7', '3.8', '3.9', '3.10'
 
     runs-on: ${{ matrix.os }}
-
-    env:
-      # Set your boost version => if you change it, change it as well in the "Spout for Python.sln"
-      BOOST_VERSION: 1.78.0
 
     name: ${{ github.event.inputs.tag }} python ${{ matrix.python-version }} on ${{ matrix.os }}
     steps:
@@ -34,29 +22,19 @@ jobs:
           echo ${{ github.workspace }}
           cd ${{ github.workspace }}
 
-      - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.1
+      - uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Install boost
-        uses: MarkusJx/install-boost@v2.1.0
-        id: install-boost
-        with:
-          # REQUIRED: Specify the required boost version
-          # A list of supported versions can be found here: 
-          # https://github.com/actions/boost-versions/blob/main/versions-manifest.json
-          boost_version: ${{env.BOOST_VERSION}}
-          platform_version: 2019
-          toolset: msvc
-          msbuild-architecture: x64
+      - name: Download Boost
+        shell: pwsh
+        run: |
+          wget https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.zip
+          Expand-Archive boost_1_78_0.zip
+          mv .\boost_1_78_0\boost_1_78_0\ boost
 
       # build python-boost
       - name: Build boost-python lib
         run: |
-          echo "boost root: ${{steps.install-boost.outputs.BOOST_ROOT}}"
-          # ls ${{steps.install-boost.outputs.BOOST_ROOT}}/lib
-          # ls ${{steps.install-boost.outputs.BOOST_ROOT}}/libs
-
-          cd "${{steps.install-boost.outputs.BOOST_ROOT}}"
+          cd boost
           ls .
           ./b2.exe --stagedir=./stage/x64 address-model=64 --build-type=complete --toolset=msvc --threading=multi --runtime-link=shared --variant=release
           ls ./stage/x64
@@ -67,21 +45,6 @@ jobs:
           cd "${{ github.workspace }}"
           cd SpoutSDK
           mkdir build
-          msbuild "Spout for Python.sln" /property:Configuration=Release /p:OutputPath=build /p:BoostDir="${{steps.install-boost.outputs.BOOST_ROOT}}" /p:PythonDir="${{ env.pythonLocation }}"
+          msbuild "Spout for Python.sln" /property:Configuration=Release /p:OutputPath=build /p:BoostDir="${{ github.workspace }}/boost" /p:PythonDir="${{ env.pythonLocation }}"
           ls build
           ls x64\Release
-        env:
-            BOOST_ROOT: ${{steps.install-boost.outputs.BOOST_ROOT}}
-
-      # upload dist
-      - name: Upload binaries to release
-        uses: svenstaro/upload-release-action@v2
-        # if: ${{ false }}
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: dist/*.whl
-          tag: ${{ github.event.inputs.tag }}
-          release_name: "Version ${{ github.event.inputs.tag }}"
-          body: "Prebuilt syphonpy wheel packages version ${{ github.event.inputs.tag }}."
-          overwrite: true
-          file_glob: true
