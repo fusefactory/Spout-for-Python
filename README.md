@@ -1,9 +1,8 @@
 # Spout for Python
 
-Based on https://github.com/spiraltechnica/Spout-for-Python
-
 A modified Spout library using Boost::Python to enable Spout texture sharing using Python.
-This library is for use with Python 3.5 / 3.6 / 3.7 64bit. Now it will automatically define python version and load appropriate file.
+Previous versions of this library have been tested with Python 3.5 / 3.6 / 3.7.
+This version of the library has been tested with Python 3.9 and a modern NVIDIA RTX A4000 GPU.
 
 ## Using the Library
 
