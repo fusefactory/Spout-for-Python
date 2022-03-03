@@ -29,7 +29,7 @@ jobs:
       - name: Download Boost
         shell: pwsh
         run: |
-          wget https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.zip
+          Invoke-WebRequest -Uri https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.zip -OutFile boost_1_78_0.zip
           Expand-Archive boost_1_78_0.zip
           mv .\boost_1_78_0\boost_1_78_0\ boost
 
