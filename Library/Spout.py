@@ -127,6 +127,7 @@ class Spout() :
         self.spoutSender[id] = SpoutSDK.SpoutSender()
 	    # Its signature in c++ looks like this: bool CreateSender(const char *Sendername, unsigned int width, unsigned int height, DWORD dwFormat = 0);
         self.spoutSender[id].CreateSender(self.senderName[id], self.width, self.height, 0)
+        self.spoutSender[id].SetSenderName(self.senderName[id])
         # create textures for spout receiver and spout sender 
         self.textureSendID[id] = glGenTextures(1)
 

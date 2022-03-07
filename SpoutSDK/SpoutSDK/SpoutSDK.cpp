@@ -10,6 +10,7 @@ BOOST_PYTHON_MODULE(SpoutSDK)
 
 	class_<SpoutSender>("SpoutSender")
 		.def("CreateSender", &SpoutSender::CreateSender)
+		.def("SetSenderName", &SpoutSender::SetSenderName)
 		.def("SendTexture", &SpoutSender::SendTexture)
 		.def("ReleaseSender", &SpoutSender::ReleaseSender)
 		;
