@@ -38,6 +38,7 @@ jobs:
         run: |
           cd boost
           ls .
+          ./bootstrap.bat
           ./b2.exe --stagedir=./stage/x64 address-model=64 --build-type=complete --toolset=msvc --threading=multi --runtime-link=shared --variant=release
           ls ./stage/x64
 
