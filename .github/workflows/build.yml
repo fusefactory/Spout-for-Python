@@ -1,11 +1,13 @@
 name: Build
 
+on: [push, pull_request]
+
 jobs:
   build:
     strategy:
       matrix:
         os: [ 'windows-latest' ]
-        python-version: [ '3.9' ] # '3.5', '3.6', '3.7', '3.8', '3.9', '3.10'
+        python-version: [ '3.7', '3.8', '3.9', '3.10' ]
 
     runs-on: ${{ matrix.os }}
 
@@ -27,7 +29,7 @@ jobs:
       - name: Download Boost
         shell: pwsh
         run: |
-          wget https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.zip
+          Invoke-WebRequest -Uri https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.zip -OutFile boost_1_78_0.zip
           Expand-Archive boost_1_78_0.zip
           mv .\boost_1_78_0\boost_1_78_0\ boost
 
@@ -36,6 +38,7 @@ jobs:
         run: |
           cd boost
           ls .
+          ./bootstrap.bat
           ./b2.exe --stagedir=./stage/x64 address-model=64 --build-type=complete --toolset=msvc --threading=multi --runtime-link=shared --variant=release
           ls ./stage/x64
 
@@ -48,3 +51,9 @@ jobs:
           msbuild "Spout for Python.sln" /property:Configuration=Release /p:OutputPath=build /p:BoostDir="${{ github.workspace }}/boost" /p:PythonDir="${{ env.pythonLocation }}"
           ls build
           ls x64\Release
+          cp x64\Release\SpoutSDK.dll SpoutSDK.pyd
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: SpoutSDK.pyd for Python ${{ matrix.python-version }}
+          path: ${{ github.workspace }}/SpoutSDK/SpoutSDK.pyd
