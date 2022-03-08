@@ -51,9 +51,9 @@ jobs:
           msbuild "Spout for Python.sln" /property:Configuration=Release /p:OutputPath=build /p:BoostDir="${{ github.workspace }}/boost" /p:PythonDir="${{ env.pythonLocation }}"
           ls build
           ls x64\Release
-          cp x86\Release\SpoutSDK.dll SpoutSDK.pyd
+          cp x64\Release\SpoutSDK.dll SpoutSDK.pyd
 
       - uses: actions/upload-artifact@v3
         with:
           name: SpoutSDK.pyd for Python ${{ matrix.python-version }}
-          path: ${{ github.workspace }}/SpoutSDK.pyd
+          path: ${{ github.workspace }}/SpoutSDK/SpoutSDK.pyd
