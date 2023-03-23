@@ -41,7 +41,7 @@ If want multiple receivers/senders, check ```test_mult.py```
 Parameters and arguments for sender and receiver can be checked in the ```Library/Spout.py```
 
 ## Requirements
-
+Install Spout from [here](https://spout.zeal.co/)
 ```
 pip install -r requirements.txt
 ```
